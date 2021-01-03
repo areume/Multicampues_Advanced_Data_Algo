@@ -1,0 +1,337 @@
+/***********************************************************/
+// [2-3-2.1~4] Segment Tree
+/***********************************************************/
+
+#if 0
+
+/***********************************************************/
+// [2-3-2.1] Segment Tree 자료 확인
+/***********************************************************/
+#if 01
+#include <stdio.h>
+
+#define NUM_DATA	(5)
+#define MAX_DATA	(NUM_DATA)
+#define MAX_TREE	(MAX_DATA*2)
+#define LAST_NODE	(MAX_DATA*2-1)
+
+int tree[MAX_TREE];
+
+int exam[NUM_DATA + 1] = { 0, 1, 2, 3, 4, 5 }; // 0번 index 공간 무시
+
+#define PRINT_TREE {int j;printf("( ");	for(j=1;j<=LAST_NODE;j++){printf("%3d ",tree[j]);}printf(")\n");}
+
+
+// 이제부터 설계되는 모든 함수는 이 부분에 선언을 추가한다
+void Update_New_Data(int node, int s, int e, int idx, int data);
+void Update_Add(int node, int s, int e, int us, int ue, int add);
+int Query(int node, int s, int e, int qs, int qe);
+#endif
+/***********************************************************/
+// [2-3-2.2] 새로운 데이터의 추가 및 데이터 업데이트 함수
+/***********************************************************/
+#if 01
+void Update_New_Data(int node, int s, int e, int idx, int data)
+{
+	int m;
+	if (s == e){//단노드
+		tree[node] = data;
+		return;
+	}
+	m = (s + e) / 2;
+	if (idx <= m) Update_New_Data(node * 2, s, m, idx, data);
+	else Update_New_Data(node * 2 + 1, m+1, e, idx, data);
+	tree[node] = tree[node * 2] + tree[node * 2 + 1];//정보 갱신
+}
+#endif
+
+#if 0
+void main(void)
+{
+	int i;
+
+	printf("Update_New_Data() Test\n");
+
+	for (i = 1; i <= NUM_DATA; i++)
+	{
+		Update_New_Data(1, 1, NUM_DATA, i, exam[i]);
+		printf("[%d] data : %d ", i, exam[i]);
+		PRINT_TREE;
+	}
+}
+#endif
+
+
+/***********************************************************/
+// [2-3-2.3] 구간 정보 요청
+/***********************************************************/
+#if 01
+int Query(int node, int s, int e, int qs, int qe)
+{
+	int m, l, r;
+	if (qs <= s && e <= qe)return tree[node];//구간의 정보를 리턴
+	if (e < qs || qe < s) return 0;//구간의 범위를 벗어난 경우 리턴
+	m = (s + e) / 2;
+	l = Query(node * 2, s, m, qs, qe);
+	r = Query(node * 2 + 1, m + 1, e, qs, qe);
+	return l + r;
+}
+#endif
+
+#if 0
+void main(void)
+{
+	int i;
+
+	printf("Query() Test\n");
+
+	for (i = 1; i <= NUM_DATA; i++)
+	{
+		Update_New_Data(1, 1, NUM_DATA, i, exam[i]);
+	}
+
+	printf("Query[1~5] : result = %d\n", Query(1, 1, NUM_DATA, 1, 5));
+	printf("Query[1~3] : result = %d\n", Query(1, 1, NUM_DATA, 1, 3));
+	printf("Query[4~5] : result = %d\n", Query(1, 1, NUM_DATA, 4, 5));
+	printf("Query[2~4] : result = %d\n", Query(1, 1, NUM_DATA, 2, 4));
+	printf("Query[3~5] : result = %d\n", Query(1, 1, NUM_DATA, 3, 5));
+}
+#endif
+
+
+/*************************************************************/
+// [2-3-2.4] 특정 구간 데이터 변경 함수 - 데이터 증가/감소
+/*************************************************************/
+#if 01
+void Update_Add(int node, int s, int e, int us, int ue, int add)
+{
+	int m;
+	if (ue < s || e < us) return;
+	if (s == e) {
+		tree[node] += add;
+		return;
+	}
+	m = (s + e) / 2;
+	Update_Add(node * 2, s, m, us, ue, add);
+	Update_Add(node * 2+1, m+1, e, us, ue, add);
+	tree[node] = tree[node * 2] + tree[node * 2 + 1];
+}
+#endif
+
+#if 01
+void main(void)
+{
+	int i;
+
+	printf("Update_Add() Test\n");
+
+	for (i = 1; i <= NUM_DATA; i++)
+	{
+		Update_New_Data(1, 1, NUM_DATA, i, exam[i]);
+	}
+
+	printf("[Before Range Update] ");
+	PRINT_TREE;
+	printf("Query[1~5] : result = %d\n", Query(1, 1, NUM_DATA, 1, 5));
+	printf("Query[1~3] : result = %d\n", Query(1, 1, NUM_DATA, 1, 3));
+	printf("Query[4~5] : result = %d\n", Query(1, 1, NUM_DATA, 4, 5));
+	printf("Query[2~4] : result = %d\n", Query(1, 1, NUM_DATA, 2, 4));
+	printf("Query[3~5] : result = %d\n", Query(1, 1, NUM_DATA, 3, 5));
+
+	Update_Add(1, 1, NUM_DATA, 2, 4, 2);
+
+	printf("\n[After Range Update] ");
+	PRINT_TREE;
+	printf("Query[1~5] : result = %d\n", Query(1, 1, NUM_DATA, 1, 5));
+	printf("Query[1~3] : result = %d\n", Query(1, 1, NUM_DATA, 1, 3));
+	printf("Query[4~5] : result = %d\n", Query(1, 1, NUM_DATA, 4, 5));
+	printf("Query[2~4] : result = %d\n", Query(1, 1, NUM_DATA, 2, 4));
+	printf("Query[3~5] : result = %d\n", Query(1, 1, NUM_DATA, 3, 5));
+}
+#endif
+#endif
+
+
+//구간의 합 구하기
+#if 0
+#include <stdio.h>
+int tree[50000 * 3];
+int N, Q;
+void update(int node, int s, int e, int idx, int data){
+	int m;
+	if (s == e){
+		tree[node] += data;
+		return;
+	}
+	m = (s + e) / 2;
+	if (idx <= m) update(node * 2, s, m, idx, data);
+	else update(node * 2 + 1, m + 1, e, idx, data);
+	tree[node] = tree[node * 2] + tree[node * 2 + 1];
+}
+int query(int node, int s, int e, int qs, int qe){
+	int m, l, r;
+	if (qs <= s && e <= qe) return tree[node];
+	if (e < qs || qe < s) return 0;
+	m = (s + e) / 2;
+	l = query(node * 2, s, m, qs, qe);
+	r = query(node * 2 + 1, m + 1, e, qs, qe);
+	return l + r;
+}
+int main(void){
+	int i, qs, qe, idx, add, data;
+	scanf("%d %d", &N, &Q);
+	for (i = 1; i <= N; i++){
+		scanf("%d", &data);
+		update(1, 1, N, i, data);//데이타 추가
+	}
+	for(i=1;i<=Q;i++){
+		scanf("%d %d %d %d", &qs, &qe, &idx, &add);
+		//쿼리구간별 부분합 구하기
+		printf("%d\n", query(1, 1, N, qs, qe));
+		//idx번째 데이타를 add만큼 증가하여 갱신
+		update(1, 1, N, idx, add);
+	}
+	return 0;
+}
+#endif
+
+//구간의 최대값 구하기
+#if 01
+#include <stdio.h>
+#define MAX(x,y) (((x)>(y))?(x):(y))
+int tree[50000 * 3];
+int N, Q;
+void update(int node, int s, int e, int idx, int data){
+	int m;
+	if (s == e){
+		tree[node] = data;
+		return;
+	}
+	m = (s + e) / 2;
+	if (idx <= m) update(node * 2, s, m, idx, data);
+	else update(node * 2 + 1, m + 1, e, idx, data);
+	tree[node] = MAX(tree[node * 2], tree[node * 2 + 1]);
+}
+int query(int node, int s, int e, int qs, int qe){
+	int m, l, r;
+	if (qs <= s && e <= qe) return tree[node];//현구간이 쿼리구간에 포함되면 값을 리턴
+	if (e < qs || qe < s) return 0;//구간이 벗어나면 리턴
+	m = (s + e) / 2;
+	l = query(node * 2, s, m, qs, qe);
+	r = query(node * 2 + 1, m + 1, e, qs, qe);
+	return MAX(l, r);
+}
+int main(void){
+	int i, qs, qe, data;
+	scanf("%d %d", &N, &Q);
+	for (i = 1; i <= N; i++) {
+		scanf("%d", &data);
+		update(1, 1, N, i, data);
+	}
+	for(i=1;i<=Q;i++){
+		scanf("%d %d", &qs, &qe);
+		printf("%d\n", query(1, 1, N, qs, qe));
+	}
+	return 0;
+}
+#endif
+//스위치
+#if 01
+#include <stdio.h>
+int N;//스위치개수
+int M;//일
+int tree[262144];
+void input_data(void){
+	scanf("%d %d", &N, &M);
+}
+void update_add(int node, int s, int e, int qs, int qe){
+	int m;
+	if (e < qs || qe < s) return;
+	if (s == e){
+		tree[node] ^= 1;
+		return;
+	}
+	m = (s + e) / 2;
+	update_add(node * 2, s, m, qs, qe);
+	update_add(node * 2+1, m+1, e, qs, qe);
+	tree[node] = tree[node * 2] + tree[node * 2 + 1];
+}
+int query(int node, int s, int e, int qs, int qe){
+	int m, r, l;
+	if (qs <= s && e <= qe) return tree[node];
+	if (e < qs || qe < s) return 0;
+	m = (s + e) / 2;
+	l = query(node * 2, s, m, qs, qe);
+	r = query(node * 2 + 1, m + 1, e, qs, qe);
+	return l + r;
+}
+void solve(void){
+	int i, cmd, qs, qe;
+	for (i = 1; i <= M; i++){
+		scanf("%d %d %d", &cmd, &qs, &qe);
+		if (cmd == 0){//쿼리구간 반전 시킴
+			update_add(1, 1, N, qs, qe);
+		}
+		else{//쿼리구간의 켜진 개수 구하기
+			printf("%d\n", query(1, 1, N, qs, qe));
+		}
+	}
+}
+int main(void){
+	input_data();
+	solve();
+	return 0;
+}
+#endif
+
+#if 01
+#include <stdio.h>
+int tree[200000*3];
+int pos[100001];//cd의 위치 기록
+int N, M;
+void update(int node, int s, int e, int idx, int data){
+	int m;
+	if (s == e){
+		tree[node] = data;//cd가 놓이면 1, 빼면 0으로 저장
+		return;
+	}
+	m = (s + e) / 2;
+	if (idx <= m) update(node * 2, s, m, idx, data);
+	else update(node * 2 + 1, m + 1, e, idx, data);
+	tree[node] = tree[node * 2] + tree[node * 2 + 1];
+}
+int query(int node, int s, int e, int qs, int qe){
+	int m, l, r;
+	if (qs <= s && e <= qe) return tree[node];
+	if (e < qs || qe < s) return 0;
+	m = (s + e) / 2;
+	l = query(node * 2, s, m, qs, qe);
+	r = query(node * 2 + 1, m + 1, e, qs, qe);
+	return l + r;
+}
+int main(void){
+	int ti, T;
+	scanf("%d", &T);
+	for (ti = 0; ti < T;ti++){
+		int i, cd;
+		scanf("%d %d", &N, &M);
+		for (i = 1; i < 200000 * 3; i++) tree[i] = 0;
+		for (i = 1; i < 100001; i++) pos[i] = 0;
+		for (i = 1; i <= N; i++){
+			pos[i] = M+i;//cd의 위치를 M다음번째에 배치
+			update(1, 1, N + M, M + i, 1);//idx번째에 cd 유무로 저장
+		}
+		for (i = 0; i < M; i++){//영화 보기
+			scanf("%d", &cd);//볼 영화 cd번호
+			//현cd의 위에 놓인 cd의 개수 구하기(1 ~ cd-1구간)
+			printf("%d ", query(1, 1, N + M, 1, pos[cd] - 1));
+			update(1, 1, N + M, pos[cd], 0);//현위치cd 제거
+			update(1, 1, N + M,  M-i , 1);//cd를 맨 위로 올리기
+			pos[cd] = M - i;//맨위로 올린 위치로 갱신
+		}
+		printf("\n");
+	}
+	return 0;
+}
+#endif
+

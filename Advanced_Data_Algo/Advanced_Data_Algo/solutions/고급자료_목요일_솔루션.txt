@@ -1,0 +1,180 @@
+//스택을 링크드리스트로
+#if 0
+#include <stdio.h>
+typedef struct st{
+	int data;
+	struct st* prev;
+}STACK;
+STACK *sp;//스텍포인터
+int cnt;//스택에 쌓여있는 데이터 수
+int N;
+int push(int d){
+	STACK *new = calloc(1, sizeof(STACK));
+	new->data = d;
+	new->prev = sp;//새로운 노드는 이전노드로 링크
+	sp = new;//새로운 노드의 주소가 마지막 노드로 sp갱신
+	cnt++;
+	return 1;
+}
+int pop(STACK *d){
+	STACK *del = sp;//마지막노드 백업
+	if (sp == 0)return 0;//empty
+	*d = *sp;//데이타 전달
+	sp = sp->prev;//이전노드주소로 갱신
+	free(del);
+	cnt--;
+	return 1;
+}
+int main(void){
+	int i, cmd, data;
+	STACK temp;//스택에서 꺼낼 데이타
+	scanf("%d", &N);
+	for (i = 0; i < N; i++){
+		scanf("%d", &cmd);
+		if (cmd == 1){
+			scanf("%d", &data);
+			push(data);//data를 푸쉬
+		}
+		else if (cmd == 0){
+			//스택에서 데이터를 빼고, 그 데이터를 출력한다. 
+			//만약 스택이 비어있으면, "E"를 출력
+			if (pop(&temp)==1) printf("%d\n", temp.data);
+			else printf("E\n");
+		}
+		else {
+			printf("%d\n", cnt);//스택에 쌓인 개수를 출력
+		}
+	}
+	return 0;
+}
+#endif
+
+//전화번호 목록
+#if 01
+#include<stdio.h>
+typedef struct _node {
+	struct _node *next[10];
+	int end;
+}NODE;
+NODE Head;
+int search_node(NODE *p, char *tel) {
+	int i, no;
+	for (i = 0; tel[i]; i++) {//문자열
+		no = tel[i] - '0';//문자를 정수화
+		if (p->end) return 0;//기존문자열의 끝이면 일관성 없음
+		if (p->next[no] == 0) return 1;//링크가 끝이면 중간에 끝났으므로 일관성 있음
+		p = p->next[no];//연결된 링크따라 이동
+	}
+	return 0;//내 문자열이 끝이어도 일관성 없음
+}
+void insert_node(NODE *p, char *tel) {
+	NODE *new;
+	int i, no;
+	for (i = 0; tel[i]; i++) {
+		no = tel[i] - '0';
+		//신규이면 노드 생성하여 연결
+		if (p->next[no] == 0){
+			new = calloc(1, sizeof(NODE));
+			p->next[no] = new;
+		}
+		p = p->next[no];//연결된 링크따라 이동
+	}
+	p->end = 1;//문자열이 끝나면 끝처리 표시
+}
+void delete_node(NODE *p) {
+	int i;
+	for (i = 0; i < 10; i++) {
+		if (p->next[i]) {
+			delete_node(p->next[i]);
+			free(p->next[i]);
+			p->next[i] = 0;
+		}
+	}
+}
+int main(void) {
+	int ti, T, N;
+	scanf("%d", &T);
+	for (ti = 0; ti < T; ti++) {
+		int i, flag = 1;
+		char tel[11];
+		scanf("%d", &N);
+		for (i = 0; i < N; i++) {
+			scanf("%s", tel);
+			//if (flag == 0) continue;
+			//if (i != 0) flag = search_node(&Head, tel);
+			insert_node(&Head, tel);
+		}
+		delete_node(&Head);
+		if (flag) printf("YES\n");
+		else printf("NO\n");
+	}
+	return 0;
+}
+#endif
+
+//에디터
+#if 01
+#include <stdio.h>
+typedef struct st{
+	char ch;
+	struct st *next, *prev;
+}NODE;
+char str[600001];
+NODE *cur;
+NODE Head, Tail;
+void insert(char ch){
+	NODE *new = calloc(1, sizeof(NODE));
+	new->ch = ch;
+	new->next = cur;
+	new->prev = cur->prev;
+	new->prev->next = new;//cur->prev->next=new;
+	new->next->prev = new;//cur->prev=new;
+}
+void delete(void){
+	NODE * del = cur->prev;
+	del->prev->next = del->next;
+	del->next->prev = del->prev;
+	free(del);
+}
+void print_node(void){
+	NODE *p = &Head;
+	for (;;){
+		if (p->next == &Tail)return;
+		printf("%c", p->next->ch);
+		p=p->next;
+	}
+}
+int main(void){
+	int N, i;
+	char cmd, ch;
+	scanf("%s", str);
+	scanf("%d", &N);
+	Head.next = &Tail;
+	Tail.prev = &Head;
+	cur = &Tail;//커서는 맨끝에 위치에서 시작
+	for (i = 0; str[i]; i++){
+		insert(str[i]);//입력받은 글자 힙에 생성하여 링크 연결
+	}
+	for (i = 0; i < N; i++){
+		scanf(" %c", &cmd);//명령어
+		if (cmd == 'L'){//커서를 왼쪽한 칸 이동(단 맨앞이면 무시)
+			if (cur->prev == &Head) continue;
+			cur = cur->prev;
+		}
+		else if (cmd == 'D'){//커서 오른쪽 이동(맨 뒤면 무시)
+			if (cur == &Tail) continue;
+			cur = cur->next;
+		}
+		else if (cmd == 'P'){//문자를 커서 왼쪽에 추가
+			scanf(" %c", &ch);//추가할 글자
+			insert(ch);
+		}
+		else{//커서 왼쪽 문자 삭제(맨 앞이면 무시)
+			if (cur->prev == &Head) continue;
+			delete();
+		}
+	}
+	print_node();//링크따라 문자 인쇄
+	return 0;
+}
+#endif

@@ -1,0 +1,349 @@
+//퀵, 병합정렬
+#if 1
+#include <stdio.h>
+int N;
+int a[30000 + 10];
+int buf[30000 + 10];//임시버퍼
+void Qsort(int s, int e){
+	int p, l, t, temp;
+	if (s >= e)return;
+	p = e;//기준은 오른쪽맨 끝요소
+	t = s;//교환위치는 왼쪽 시작위치 
+	for (l = s; l < e; l++){//비교대상
+		if (a[l] < a[p]){//비교 : Left <-> Pivot
+			temp = a[l];//교환: Left <-> Target
+			a[l] = a[t];
+			a[t] = temp;
+			t++;
+		}
+	}
+	temp = a[p]; a[p] = a[t]; a[t] = temp;//Pivot과 Target 교환
+	Qsort(s, t - 1);//왼쪽영역 정렬
+	Qsort(t + 1, e); //오른 영역 정렬
+}
+void Msort(int s, int e){
+	int m, i, j, k;
+	if (s >= e)return;
+	m = (s + e) / 2;
+	Msort(s, m);//왼쪽영역 나누기
+	Msort(m + 1, e);//오른쪽영역 나누기
+	i = s; //왼쪽영역시작
+	j = m + 1; //오른쪽영역 시작
+	k = s;//임시버퍼 시작
+	//왼쪽과 오른쪽영역을 비교하여 작은 값을 임시버퍼에 저장
+	while (i <= m && j <= e){
+		if (a[i] < a[j])buf[k++] = a[i++];//왼쪽이 더 작으면 
+		else buf[k++] = a[j++];
+	}
+	//왼쪽과 오른쪽영역중 남은 영역을 임시버퍼에 저장
+	while (i <= m) buf[k++] = a[i++];
+	while (j <= e) buf[k++] = a[j++];
+	//임시버퍼를 원본배열에 복사
+	for (i = s; i <= e; i++) a[i] = buf[i];
+}
+int main(void){
+	int i;
+	scanf("%d", &N);
+	for (i = 0; i<N; i++){
+		scanf("%d", &a[i]);
+	}
+	//Qsort(0, N - 1);
+	Msort(0, N - 1);
+	for (i = 0; i<N; i++){
+		printf("%d ", a[i]);
+	}
+	Msort(0, N - 1);
+	return 0;
+}
+#endif
+
+//숫자찾기(이진탐색)
+#if 0
+#include <stdio.h>
+int a[50001];
+int N;
+int Bin_Search(int s, int e, int data){
+	int m;
+	while (s <= e){
+		m = (s + e) / 2;
+		//mid값과 같으면 위치를 리턴
+		if (a[m] == data) return m + 1;
+		//mid보다 크면 오른쪽영역을 재탐색
+		else if (a[m] < data) s = m + 1;
+		//mid보다 작으면 왼족영역을 재탐색
+		else e = m - 1;
+	}
+	return 0;//못찾은경우이면 0리턴
+}
+int main(void){
+	int i, T, data;
+	scanf("%d", &N);
+	for (i = 0; i < N; i++) scanf("%d", &a[i]);
+	scanf("%d", &T);//찾을 데이타 개수
+	for (i = 0; i < T; i++){
+		scanf("%d", &data);//찾을 데이타
+		printf("%d\n", Bin_Search(0, N - 1, data));
+	}
+	return 0;
+}
+#endif
+
+//숫자 카운팅
+#if 0
+#include <stdio.h>
+int a[200001];
+int N, M;
+int lower(int s, int e, int data){
+	int sol = -1, m;
+	//mid와 같으면 왼쪽영역 재탐색(mid위치를 백업)
+	while (s <= e){
+		m = (s + e) / 2;
+		if (a[m] == data){
+			sol = m;
+			e = m - 1;
+		}
+		else if (a[m] < data) s = m + 1;
+		else e = m - 1;
+	}
+	return sol;
+}
+int upper(int s, int e, int data){
+	int sol = -1, m;
+	//mid와 같으면 오른쪽영역 재탐색(mid위치를 백업)
+	while (s <= e){
+		m = (s + e) / 2;
+		if (a[m] == data){
+			sol = m;
+			s=m+1;
+		}
+		else if (a[m] < data) s = m + 1;
+		else e = m - 1;
+	}
+	return sol;
+}
+int main(void){
+	int i, data, lo, up;
+	scanf("%d", &N);
+	for (i = 0; i < N; i++) scanf("%d", &a[i]);
+	scanf("%d", &M);
+	for (i = 0; i < M; i++){
+		scanf("%d", &data);
+		lo = lower(0, N - 1, data);//왼쪽끝 위치
+		if (lo != -1) {
+			up = upper(0, N - 1, data);//오른쪽 끝 위치
+			printf("%d ", up - lo + 1);
+		}
+		else printf("0 ");//못찾은 경우
+	}
+	return 0;
+}
+#endif
+
+//숫자 범위내 카운팅
+#if 01
+#include <stdio.h>
+int a[200001];
+int N, M;
+int lower(int s, int e, int data){
+	int sol = -1, m;
+	//mid값이 data이상이면 왼쪽영역 재탐색(더 작은값 찾기위해)
+	while (s <= e){
+		m = (s + e) / 2;
+		if (a[m] >= data){
+			sol = m;
+			e = m - 1;
+		}
+		else s = m + 1;
+	}
+	return sol;
+}
+int upper(int s, int e, int data){
+	int sol = -1, m;
+	//mid값이 data이하이면 더 큰값을 찾기위해 오른쪽영역 재탐색(mid위치를 백업)
+	while (s <= e){
+		m = (s + e) / 2;
+		if (a[m] <= data){
+			sol = m;
+			s = m + 1;
+		}
+		else e = m - 1;
+	}
+	return sol;
+}
+int main(void){
+	int i, data, lo, up;
+	scanf("%d", &N);
+	for (i = 0; i < N; i++) scanf("%d", &a[i]);
+	// 1 1 1 6 9 11 13 17 19 20 
+	// 5~15사이의 개수를 구하기
+	lo = lower(0, N - 1, 5);//5이상중에서 가장 작은 값의 위치
+	if (lo != -1){
+		up = upper(0, N - 1, 15);//15이하중에서 가장 큰 값의 위치
+		printf("%d", up - lo + 1);
+	}
+	return 0;
+}
+#endif
+
+//도약(이진탐색)
+#if 01
+#include <stdio.h>
+int N;
+int a[10001];
+int lower(int s, int e, int data){
+	int sol = -1, m;
+	while (s <= e){
+		m = (s + e) / 2;
+		if (a[m] >= data){
+			sol = m;
+			e = m - 1;
+		}
+		else s = m + 1;
+	}
+	return sol;
+}
+int upper(int s, int e, int data){
+	int sol = -1, m;
+	while (s <= e){
+		m = (s + e) / 2;
+		if (a[m] <= data){
+			sol = m;
+			s = m + 1;
+		}
+		else e = m - 1;
+	}
+	return sol;
+}
+void Qsort(int s, int e){
+	int p, l, t, temp;
+	if (s >= e) return;
+	p = e; t = s;
+	for (l = s; l < e; l++){
+		if (a[l] < a[p]){
+			temp = a[l]; a[l] = a[t]; a[t] = temp;
+			t++;
+		}
+	}
+	temp = a[p]; a[p] = a[t]; a[t] = temp;
+	Qsort(s, t - 1);
+	Qsort(t + 1, e);
+}
+int main(void){
+	int i, j, k, dist, start, end, cnt=0, lo, up;
+	scanf("%d", &N);
+	for (i = 0; i < N; i++) scanf("%d", &a[i]);
+	Qsort(0, N-1);//오름차순 정렬
+	for (i = 0; i < N - 2; i++){//출발위치
+		for (j = i + 1; j < N - 1; j++){//첫번재 점프
+			dist = a[j] - a[i];//이전거리
+			start = a[j] + dist;
+			end = a[j] + dist*2;
+			//start 이상중에서 가장 작은 값의 위치 탐색
+			lo = lower(0, N - 1, start);
+			//예외조건 : 실패이거나 end초과시
+			if (lo == -1 || a[lo]>end) continue;//예외조건이면 스킵
+			up = upper(0, N - 1, end);
+			cnt += up - lo + 1;
+		}
+	}
+	printf("%d", cnt);
+	return 0;
+}
+#endif
+
+//바이러스
+#if 0
+#include <stdio.h>
+#define MAX 101
+int map[MAX][MAX];
+int visit[MAX];//감염 여부 체크
+int N, M, cnt;
+void FF(int c){
+	//현재 컴퓨터와 방문안한 연결된 컴퓨터를 따라가면서 체크하고 카운트
+	for (int i = 1; i <= N; i++){//연결된 컴퓨터(열)
+		if (map[c][i] == 1 && visit[i] == 0){
+			cnt++;
+			visit[i] = 1;
+			FF(i);
+		}
+	}
+}
+int main(void){
+	int i, s, e;
+	scanf("%d", &N);//컴퓨터개수
+	scanf("%d", &M);//간선정보 개수
+	for (i = 0; i < M; i++){
+		scanf("%d %d", &s, &e);
+		map[s][e] = map[e][s] = 1;//연결 체크
+	}
+	visit[1]=1;
+	FF(1);//1번 컴퓨터부터 시작
+	printf("%d", cnt);
+	return 0;
+}
+#endif
+
+
+//hash table 추가/삭제 함수 구현하기
+#if 01
+#include <stdio.h>
+#define MAX    10
+#define HASH_KEY 5 
+#define STEP     1 
+
+int Hash_table[MAX] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 }; //초기값 -1로
+int test[MAX] = { 1, 5, 3, 4, 9, 10, 11, 6, 2, 7 }; //테스트값
+int Get_Hash_Key(int id)
+{
+	return id % HASH_KEY;
+}
+void Print_All_Data(void)
+{
+	int i;
+	for (i = 0; i < MAX; i++)
+	{
+		if (Hash_table[i] > 0) printf("[%d] data=%d\n", i, Hash_table[i]);
+	}
+}
+
+int Insert_Data(int  data) {
+	int i, key;
+	key = Get_Hash_Key(data);
+	for (i = 0; i < MAX; i++){//MAX개만큼 반복
+		if (Hash_table[key] <= 0) {//빈방이면 저장하고 리턴
+			Hash_table[key] = data;
+			return key;
+		}
+		else if (Hash_table[key] == data) return -1;//같은 아이디 체크
+		//아니면 STEP만큼 이동(MAX초과시 %처리)
+		key = (key + STEP) % MAX;
+	}
+	return -1;//빈방 없음
+}
+
+int Delete_Data(int data) {
+	int i, key;
+	key = Get_Hash_Key(data);
+	for (i = 0; i < MAX; i++){//MAX개만큼 반복
+		if (Hash_table[key] == -1) return -1;
+		else if(Hash_table[key] == data) {//삭제할 데이타이면
+			Hash_table[key] = 0;
+			return key;
+		}
+		//아니면 STEP만큼 이동(MAX초과시 %처리)
+		key = (key + STEP) % MAX;
+	}
+	return -1;//해당 데이타 없음
+}
+
+void main(void)
+{
+	int i, r;
+	for (i = 0; i < MAX; i++) Insert_Data(test[i]);
+	Print_All_Data();
+	printf("[3] Delete Result=%d\n", r = Delete_Data(3));
+	printf("[11] Delete Result=%d\n", r = Delete_Data(11));
+	printf("[3] Delete Result=%d\n", r = Delete_Data(3));
+	Print_All_Data();
+}
+#endif

@@ -1,0 +1,361 @@
+//암소라인업
+#if 0
+#include <stdio.h>
+#define MAX 200000
+typedef struct{
+	int x, id;
+}COW;
+COW cow[50001], tmp[50001];
+int new_id[MAX];//새로운 아이디 배정하여 저장(해쉬테이블)
+int id_chk[MAX];//아이디 체크
+int id_cnt;//아이디 가짓수
+int N;
+int get_newid(int id){//신규 아이디 배정
+	int i, key;
+	key = id % MAX;//해쉬키(신규아이디)
+	for (i = 0; i < MAX; i++){
+		//새로운 아이디이면 신규로 배정하고 신규아이디 저장
+		if (new_id[key] == 0){
+			id_cnt++;
+			new_id[key] = id;
+			return key;
+		}
+		else if (new_id[key] == id) return key;//기존 아이디이면 기존 키로  
+		key = (key + 1) % MAX;//충돌시 1씩 이동하여 빈방을 찾아 배정
+	}
+	return -1;
+}
+void Msort(int s, int e){
+	int i, j, k, m;
+	if (s >= e) return;
+	m = (s + e) / 2;
+	Msort(s, m);//왼쪽영역 나누기
+	Msort(m + 1, e);//오른족 영역 나누기
+	i = s; //왼쪽영역 시작위치(s~m)
+	j = m + 1;//오른쪽 영역 시작위치(m+1 ~ e)
+	k = s;//임시버퍼의 시작위치
+	while (i <= m && j <= e){
+		if (cow[i].x < cow[j].x) tmp[k++] = cow[i++];//왼쪽이 더 작으면
+		else tmp[k++] = cow[j++];//오른족 값이 더 작으면 임시버퍼에 담기
+	}
+	while (i <= m) tmp[k++] = cow[i++];
+	while (j <= e) tmp[k++] = cow[j++];
+	for (i = s; i <= e; i++) cow[i] = tmp[i];
+}
+int solve(void) {
+	//모든 품종이 포함되는 X 좌표의 최소 범위를 탐색
+	int s, e, type = 0, min = 0x7fffffff, dis;
+	for (s = 0, e = 0; s < N; s++) {
+		//하나씩 추가하여 카운트
+		if (id_chk[cow[s].id]++ == 0) type++;
+		//모든 품종을 담고 있다면 왼쪽끝에서 하나씩 줄여나가기
+		while (type == id_cnt){
+			dis = cow[s].x - cow[e].x;//거리
+			if (min > dis) min = dis;
+			if (--id_chk[cow[e].id] == 0) type--;
+			e++;
+		}
+	}
+	return min;
+}
+int main(void){
+	int i, id;
+	scanf("%d", &N);
+	for (i = 0; i < N; i++){
+		scanf("%d %d", &cow[i].x, &id);
+		cow[i].id = get_newid(id);//신규 아이디 배정
+	}
+	Msort(0, N-1);//x좌표기준으로 오른차순 정렬
+	printf("%d", solve());
+	return 0;
+}
+#endif
+
+//heap sort
+#if 01
+#include <stdio.h>
+#define MAX_HEAP    (30000)
+int N;
+int heap[MAX_HEAP + 1];
+int lastnode = 0;
+//Max heap tree로 운영
+int Heap_Push(int d){
+	int p, c, temp;
+	if (lastnode == MAX_HEAP) return 0;//full
+	heap[++lastnode] = d;//마지막 노드에 추가
+	c = lastnode;//자식
+	p = c / 2;//부모
+	while (p > 0){//부모가 최상위 노드이내일 동안 반복
+		if (heap[p] < heap[c]){//자식이 더 크면 교환
+			temp = heap[p];
+			heap[p] = heap[c];
+			heap[c] = temp;
+			c = p;
+			p = c / 2;
+		}
+		else break;//더이상 교환할 필요없으면 종료
+	}
+	return 1;
+}
+
+int Heap_Pop(int *d){
+	int p, l, r, c, temp;
+	if (lastnode == 0) return 0;//empty
+	*d = heap[1];
+	heap[1] = heap[lastnode--];//마지막노드가 최상위 노드로 승계
+	p = 1; l = 2; r = 3;
+	while (l <=lastnode){
+		if (l == lastnode) c = l;//자식이 하나인 경우
+		else if (heap[l]>heap[r]) c = l;//자식이 둘인 경우 후계자 결정
+		else c = r;
+		if (heap[p] < heap[c]){//자식이 더 크면 교환
+			temp = heap[p];
+			heap[p] = heap[c];
+			heap[c] = temp;
+			p = c; l = p * 2; r = l + 1;
+		}
+		else break;//더이상 교환할 필요없으면 종료
+	}
+	return 1;
+}
+int main(void){
+	int i, d;
+	scanf("%d", &N);
+	for (i = 0; i < N; i++)	{
+		scanf("%d", &d);
+		Heap_Push(d);
+	}
+	for (i = N; i >= 1; i--){
+		Heap_Pop(&d);
+		heap[i] = d;
+	}
+	for (i = 1; i <= N; i++)
+	{
+		printf("%d ", heap[i]);
+	}
+
+	return 0;
+}
+#endif
+
+//사탕포장(단순정렬이용하여)
+#if 0
+#include <stdio.h>
+int a[5001];
+int N;
+void sort(int s, int e){
+	//단순정렬이용하여 2개만 정렬
+	int i, j, temp;
+	for (i = s; i <s+2; i++){
+		for (j = i + 1; j < N; j++){
+			if (a[i] > a[j]){
+				temp = a[i];
+				a[i] = a[j];
+				a[j] = temp;
+			}
+		}
+	}
+}
+int main(void){
+	int i, sum=0;
+	scanf("%d", &N);
+	for (i = 0; i < N; i++){
+		scanf("%d", &a[i]);
+	}
+	for (i = 0; i < N - 1; i++){
+		sort(i, N - 1);//단순 정렬을 이용하여 i위치에서 2개만 정렬
+		a[i + 1] += a[i];//사탕포장
+		sum += a[i + 1];//누적
+		printf("%d\n", sum);
+	}
+	printf("%d", sum);
+	return 0;
+}
+#endif
+//사탕포장(heap tree이용하여)
+#if 01
+#include <stdio.h>
+int heap[5001];
+int N, last;
+//min tree로 운영
+void push(int d){
+	int p, c, temp;
+	heap[++last] = d;//마지막 노드에 데이타 추가
+	c = last; p = c / 2;
+	while (p > 0){//최상위노드까지
+		if (heap[p] > heap[c]){//자식이 더 작은값이면 교환
+			temp = heap[p];
+			heap[p] = heap[c];
+			heap[c] = temp;
+			c = p; p = c / 2;//부모노드로 자식은 이동
+		}
+		else break;//교환이 필요없으면 종료
+	}
+}
+void pop(int *d){
+	int p, c, l, r, temp;
+	*d = heap[1];//최상위노드값 전달
+	heap[1] = heap[last--];//마지막 노드를 최상위노드로 배치
+	p = 1; l = 2; r = 3;
+	while (l <= last){//마지막 노드까지
+		if (l == last)c = l;//자식이 한명이면 왼쪽자식이 후보자로
+		else if (heap[l] < heap[r]) c = l;//자식이 2명이면 더 작은 후보자로
+		else c = r;
+		if (heap[p] > heap[c]){//자식이 더 작은값이면 교환
+			temp = heap[p];
+			heap[p] = heap[c];
+			heap[c] = temp;
+			p = c; l = p * 2; r = l + 1;//부모는 후계자자리로 이동
+		}
+		else break;//교환이 필요없으면 종료
+	}
+}
+int main(void){
+	int i, d, sum = 0, n1, n2;
+	scanf("%d", &N);
+	for (i = 0; i < N; i++){
+		scanf("%d", &d);
+		push(d);
+	}
+	for (i = 0; i < N - 1; i++){
+		pop(&n1);
+		pop(&n2);
+		sum += n1 + n2;//사탕포장
+		push(n1 + n2);
+	}
+	printf("%d", sum);
+	return 0;
+}
+#endif
+
+//자외선피해가기(BFS + memo)
+#if 01
+#include <stdio.h>
+int map[110][110];
+int rec[110][110];//자외선의 누적합 기록
+int N;
+typedef struct {
+	int r, c;
+}QUE;
+QUE que[110 * 110 * 10];//중복방문으로 크게 잡을것
+int rp, wp;
+void In_Que(int r, int c){
+	que[wp].r = r;
+	que[wp].c = c;
+	wp++;
+}
+int BFS(void){
+	int nr, nc, i;
+	int dr[4] = {0, 1, 0, -1}, dc[4] = {1, 0, -1, 0};//시계방향
+	QUE q;
+	In_Que(1, 1);
+	rec[1][1] = map[1][1];
+	while (rp < wp){
+		q = que[rp++];
+		for (i = 0; i < 4; i++){
+			nr = q.r + dr[i];
+			nc = q.c + dc[i];
+			if (nr<1 || nr>N || nc<1 || nc>N) continue;
+			//이전의 해보다 현재 해가 더 최소이면 큐에저장하고 기록
+			if (rec[nr][nc] > rec[q.r][q.c] + map[nr][nc]){
+				In_Que(nr, nc);
+				rec[nr][nc] = rec[q.r][q.c] + map[nr][nc];
+			}
+		}
+	}
+	return rec[N][N];//큐가비면 도착점의 해 리턴
+}
+int main(void){
+	int i, j;
+	scanf("%d", &N);
+	for (i = 1; i <= N; i++){
+		for (j = 1; j <= N; j++){
+			scanf("%1d", &map[i][j]);
+			rec[i][j] = 0x7fffffff;//초기화
+		}
+	}
+	printf("%d", BFS());//도착점까지의 최소비용
+	return 0;
+}
+#endif
+
+//자외선피해가기(우선순위 큐)
+#if 01
+#include <stdio.h>
+int map[110][110];
+int visit[110][110];//방문표시
+int N;
+typedef struct {
+	int r, c, sum;
+}QUE;
+QUE heap[110 * 110 ];//heap tree
+int last;
+void push(int rr, int cc, int sum){
+	int p, c;
+	QUE temp;
+	heap[++last].r = rr;
+	heap[last].c = cc;
+	heap[last].sum = sum;
+	c = last; p = c / 2;
+	while (p > 0){
+		if (heap[p].sum > heap[c].sum){
+			temp = heap[p];
+			heap[p] = heap[c];
+			heap[c] = temp;
+			c = p; p = c / 2;
+		}
+		else break;
+	}
+}
+void pop(QUE *d){
+	int p, c, l, r;
+	QUE temp;
+	*d = heap[1];
+	heap[1] = heap[last--];
+	p = 1; l = 2; r = 3;
+	while (l <= last){
+		if (l == last) c = l;
+		else if (heap[l].sum < heap[r].sum) c = l;
+		else c = r;
+		if (heap[p].sum > heap[c].sum){
+			temp = heap[p];
+			heap[p] = heap[c];
+			heap[c] = temp;
+			p = c; l = p * 2; r = l + 1;
+		}
+		else break;
+	}
+}
+int BFS(void){
+	int nr, nc, i;
+	int dr[4] = {0, 1, 0, -1}, dc[4] = {1, 0, -1, 0};//시계방향
+	QUE q;
+	push(1, 1, map[1][1]);
+	visit[1][1] = 1;
+	while (last > 0){//last노드가 있을 동안 반복
+		pop(&q);
+		if (q.r == N && q.c == N) return q.sum;//도착하면 리턴
+		for (i = 0; i < 4; i++){
+			nr = q.r + dr[i]; nc = q.c + dc[i];
+			if (nr<1 || nr>N || nc< 1 || nc>N) continue;
+			//방문안한 자리를 큐에저장하고 방문표시
+			if (visit[nr][nc] == 0){
+				push(nr, nc, q.sum + map[nr][nc]);
+				visit[nr][nc] = 1;
+			}
+		}
+	}
+}
+int main(void){
+	int i, j;
+	scanf("%d", &N);
+	for (i = 1; i <= N; i++){
+		for (j = 1; j <= N; j++){
+			scanf("%1d", &map[i][j]);
+		}
+	}
+	printf("%d", BFS());//도착점까지의 최소비용
+	return 0;
+}
+#endif
+

@@ -1,0 +1,123 @@
+//해밀턴
+#if 01
+#include <stdio.h>
+int map[20][20];
+int visit[20];
+int N, min;
+void DFS(int city, int cnt, int sum){
+	//N회 순회하면 마지막 도시에서 집으로가는 비용계산하여 min비교
+	if (cnt == N){
+		if (map[city][1]>0){//(단 집으로가는 비용이 있는 경우만)
+			if (sum + map[city][1] < min) min = sum + map[city][1];
+		}
+		return;
+	}
+	//현재 도시에서 모든도시를 방문하는 경우의 수 시도
+	for (int i = 2; i <= N; i++){//가볼도시(열)
+		//연결점조건 : 비용이 있고 방문안한 도시를 시도
+		if (map[city][i] > 0 && visit[i] == 0){
+			visit[i] = 1;
+			DFS(i, cnt + 1, sum + map[city][i]);
+			visit[i] = 0;
+		}
+	}
+}
+int main(void){
+	int i, j;
+	scanf("%d", &N);
+	for (i = 1; i <= N; i++){
+		for (j = 1; j <= N; j++){
+			scanf("%d", &map[i][j]);
+		}
+	}
+	min=0x7fffffff;
+	visit[1]=1;
+	DFS(1, 1, 0);//1번 도시부터 시작, 1회순회, 비용은 0원
+	printf("%d", min);
+	return 0;
+}
+#endif
+
+//지하철
+#if 01
+#include <stdio.h>
+int map[101][101];
+int cost[101];//최소비용 기록
+int path[101];//역의 경로 기록
+int N, M;
+int queue[101 * 101];
+int rp, wp;
+int BFS(void){
+	int i, no;
+	queue[wp++] = 1;//1] 시작점 큐에저장
+	cost[1] = 0;//기록
+	while (rp < wp){
+		no = queue[rp++];//2] 큐에서 읽기(현재역)
+		for (i = 2; i <= N; i++){//다음에 가볼 역(열)
+			//가볼역의 비용보다 현재경로의 비용이 더 최소이면 큐에저장
+			if (cost[i]>cost[no] + map[no][i]){
+				queue[wp++] = i;
+				cost[i] = cost[no] + map[no][i];
+				path[i] = no;//현재역과 가볼역의 경로 기록
+			}
+		}
+	}
+	return cost[M];//큐가 비면 목적역의 비용을 리턴
+}
+void print_path(int no){
+	if (no == 1){
+		printf("1 ");
+		return;
+	}
+	print_path(path[no]);
+	printf("%d ", no);
+}
+int main(void){
+	int i, j;
+	scanf("%d %d", &N, &M);
+	for (i = 1; i <= N; i++){
+		cost[i] = 0x7fffffff;//큰값으로 초기화
+		for (j = 1; j <= N; j++){
+			scanf("%d", &map[i][j]);
+		}
+	}
+	printf("%d\n", BFS());
+	print_path(M);//목적역에서 1번역까지 재귀적으로 구현하여 역으로 인쇄
+	return 0;
+}
+#endif
+
+//예산
+#if 01
+#include <stdio.h>
+int N, M;
+int a[10001];
+int check(int m){
+	int i, sum = 0;
+	for (i = 0; i < N; i++){
+		if (a[i] > m) sum += m;
+		else sum += a[i];
+	}
+	return sum;
+}
+int main(void){
+	int i, m, sol, s=0, e=0;
+	scanf("%d", &N);
+	for (i = 0; i < N; i++){
+		scanf("%d", &a[i]);
+		if (e < a[i]) e = a[i];//예산액중 가장 큰값
+	}
+	scanf("%d", &M);
+	while(s<=e){//0~max까지 상한가를 이진탐색으로 시도
+		m = (s + e) / 2;//상한가
+		if (check(m) <= M){//상한가로 배정이 가능하면 늘려봄
+			s = m + 1; 		sol = m;
+		}
+		else{//상한가를 줄여봄
+			e = m - 1;
+		}
+	}
+	printf("%d", sol);
+	return 0;
+}
+#endif
